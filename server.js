@@ -1,12 +1,6 @@
 const express = require('express');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose(); // Import sqlite3
-const { 
-    setupMiddleware, 
-    setupEnhancedRoutes, 
-    setupErrorHandling, 
-    optimizeDatabase 
-} = require('./server-enhancements');
 
 const app = express();
 const port = 3000;
@@ -47,7 +41,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
                         const stmt = db.prepare("INSERT INTO laundries (name, lat, lng, address, price_per_kg, service_speed_days, opening_hours) VALUES (?, ?, ?, ?, ?, ?, ?)");
                         initialLaundries.forEach(l => {
                             stmt.run(l.name, l.lat, l.lng, l.address, l.price_per_kg, l.service_speed_days, l.opening_hours);
-                        });                        stmt.finalize(err => {
+                        });
+                        stmt.finalize(err => {
                             if (err) console.error("Error seeding data", err.message);
                             else console.log("Initial data seeded successfully.");
                         });
@@ -55,97 +50,45 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 });
             }
         });
-          // Optimize database after initialization
-        optimizeDatabase(db);
-        
-        // Setup middleware after database is ready
-        setupMiddleware(app);
-          // Serve static files from the 'public' directory
-        app.use(express.static(path.join(__dirname, 'public')));
-        // Serve images from the 'img' directory
-        app.use('/img', express.static(path.join(__dirname, 'img')));
-        app.use(express.json()); // Middleware to parse JSON bodies for POST requests
-          // Setup enhanced routes after database is ready
-        setupEnhancedRoutes(app, db);
-        
-        // API endpoint to get all laundries
-        app.get('/api/laundries', (req, res) => {
-            db.all("SELECT * FROM laundries", [], (err, rows) => {
-                if (err) {
-                    console.error("Error fetching laundries from DB", err.message);
-                    res.status(500).json({ error: err.message });
-                    return;
-                }
-                res.json(rows);
-            });
-        });
-
-        // API endpoint to search laundries
-        app.get('/api/search', (req, res) => {
-            const { q, limit = 10 } = req.query;
-            
-            if (!q || q.trim().length < 2) {
-                return res.json([]);
-            }
-            
-            const searchTerm = `%${q.trim()}%`;
-            const query = `
-                SELECT * FROM laundries 
-                WHERE name LIKE ? OR address LIKE ?
-                ORDER BY 
-                    CASE 
-                        WHEN name LIKE ? THEN 1
-                        WHEN name LIKE ? THEN 2
-                        WHEN address LIKE ? THEN 3
-                        ELSE 4
-                    END,
-                    name ASC
-                LIMIT ?
-            `;
-            
-            const params = [
-                searchTerm, searchTerm,           // WHERE conditions
-                `${q.trim()}%`, searchTerm,       // ORDER BY conditions for name
-                searchTerm,                       // ORDER BY condition for address
-                parseInt(limit)                   // LIMIT
-            ];
-            
-            db.all(query, params, (err, rows) => {
-                if (err) {
-                    console.error("Error searching laundries", err.message);
-                    res.status(500).json({ error: err.message });
-                    return;
-                }
-                res.json(rows);
-            });
-        });
-
-        // API endpoint to add a new laundry
-        app.post('/api/laundries', (req, res) => {
-            const { name, lat, lng, address, price_per_kg, service_speed_days, opening_hours } = req.body;
-            if (!name || lat === undefined || lng === undefined) {
-                return res.status(400).json({ error: "Missing required fields: name, lat, lng" });
-            }
-            const stmt = db.prepare("INSERT INTO laundries (name, lat, lng, address, price_per_kg, service_speed_days, opening_hours) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            stmt.run(name, lat, lng, address, price_per_kg, service_speed_days, opening_hours, function(err) { // Use function keyword to get this.lastID
-                if (err) {
-                    console.error("Error inserting laundry to DB", err.message);
-                    res.status(500).json({ error: err.message });
-                    return;
-                }
-                res.status(201).json({ id: this.lastID, ...req.body });
-            });
-            stmt.finalize();
-        });
-        
-        // Setup error handling middleware
-        setupErrorHandling(app);
-        
-        // Start server after everything is set up
-        app.listen(port, () => {
-            console.log(`Server listening at http://localhost:${port}`);
-        });
     }
+});
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json()); // Middleware to parse JSON bodies for POST requests
+
+// API endpoint to get all laundries
+app.get('/api/laundries', (req, res) => {
+    db.all("SELECT * FROM laundries", [], (err, rows) => {
+        if (err) {
+            console.error("Error fetching laundries from DB", err.message);
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json(rows);
+    });
+});
+
+// API endpoint to add a new laundry
+app.post('/api/laundries', (req, res) => {
+    const { name, lat, lng, address, price_per_kg, service_speed_days, opening_hours } = req.body;
+    if (!name || lat === undefined || lng === undefined) {
+        return res.status(400).json({ error: "Missing required fields: name, lat, lng" });
+    }
+    const stmt = db.prepare("INSERT INTO laundries (name, lat, lng, address, price_per_kg, service_speed_days, opening_hours) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    stmt.run(name, lat, lng, address, price_per_kg, service_speed_days, opening_hours, function(err) { // Use function keyword to get this.lastID
+        if (err) {
+            console.error("Error inserting laundry to DB", err.message);
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.status(201).json({ id: this.lastID, ...req.body });
+    });
+    stmt.finalize();
+});
+
+app.listen(port, () => {
+    console.log(`Server listening at http://localhost:${port}`);
 });
 
 // Graceful shutdown

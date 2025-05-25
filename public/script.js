@@ -15,9 +15,8 @@ const backToHeroBtn = document.getElementById('back-to-hero');
 // Function to handle transition from hero to app
 function showApp() {
     heroSection.classList.remove('active');
-    heroSection.classList.add('hero-hidden');
-    appContainer.classList.remove('hidden');
-    appContainer.classList.add('flex');
+    heroSection.classList.add('hidden');
+    appContainer.style.display = 'flex';
     
     // Give time for the hero section to animate out
     setTimeout(() => {
@@ -30,13 +29,11 @@ function showApp() {
 // Function to go back to hero
 function showHero() {
     heroSection.style.display = 'flex';
-    appContainer.classList.add('hidden');
-    appContainer.classList.remove('flex');
-    
     // Give time for the DOM to update
     setTimeout(() => {
-        heroSection.classList.remove('hero-hidden');
+        heroSection.classList.remove('hidden');
         heroSection.classList.add('active');
+        appContainer.style.display = 'none';
     }, 10);
 }
 
@@ -55,22 +52,22 @@ window.addEventListener('wheel', (e) => {
 const campusIcon = L.divIcon({
     className: 'custom-div-icon',
     html: "<div class='marker-pin university-pin'><span>🏫</span></div>",
-    iconSize: [50, 60],
-    iconAnchor: [25, 60]
+    iconSize: [30, 42],
+    iconAnchor: [15, 42]
 });
 
 const laundryIcon = L.divIcon({
     className: 'custom-div-icon',
     html: "<div class='marker-pin laundry-pin'><span>🧺</span></div>",
-    iconSize: [50, 60],
-    iconAnchor: [25, 60]
+    iconSize: [30, 42],
+    iconAnchor: [15, 42]
 });
 
 const userLocationIcon = L.divIcon({
     className: 'custom-div-icon',
     html: "<div class='marker-pin user-pin'><span>📍</span></div>",
-    iconSize: [50, 60],
-    iconAnchor: [25, 60]
+    iconSize: [30, 42],
+    iconAnchor: [15, 42]
 });
 
 // Add a marker for Telkom University with custom icon
@@ -94,16 +91,6 @@ const nearMeBtn = document.getElementById('near-me-btn');
 const choroplethBtn = document.getElementById('choropleth-btn');
 const loadingIndicator = document.getElementById('loading-indicator');
 const statusMessageContainer = document.getElementById('status-message-container');
-
-// Search elements
-const searchInput = document.getElementById('search-input');
-const clearSearchBtn = document.getElementById('clear-search');
-const searchResults = document.getElementById('search-results');
-
-// Search variables
-let searchTimeout;
-let currentSearchQuery = '';
-let selectedSearchIndex = -1;
 
 // Choropleth variables
 let choroplethLayer = null;
@@ -146,21 +133,12 @@ function renderLaundryMarkers(sortByDistanceAfterNearMe = false) {
 
         if (laundry.distance !== undefined) {
             popupContent += `<div><strong>🚶 Distance:</strong> ${laundry.distance.toFixed(0)} m</div>`;
-        }        popupContent += `</div>`;
+        }
         
-        // Add Get Directions button with conditional styling based on user location
-        const hasUserLocation = currentUserLocation !== null;
-        const buttonClasses = hasUserLocation 
-            ? "directions-btn mt-3 w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2"
-            : "directions-btn mt-3 w-full bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 opacity-75";
+        popupContent += `</div>`;
         
-        const buttonIcon = hasUserLocation ? "fas fa-route" : "fas fa-location-dot";
-        const buttonText = hasUserLocation ? "Get Directions" : "Set Location First";
-        
-        popupContent += `<button class="${buttonClasses}" data-lat="${laundry.lat}" data-lng="${laundry.lng}" data-name="${laundry.name}">
-            <i class="${buttonIcon} text-sm"></i>
-            ${buttonText}
-        </button>`;
+        // Add Get Directions button
+        popupContent += `<button class="directions-btn" data-lat="${laundry.lat}" data-lng="${laundry.lng}" data-name="${laundry.name}">Get Directions</button>`;
 
         const marker = L.marker([laundry.lat, laundry.lng], {icon: laundryIcon});
 
@@ -181,47 +159,9 @@ function renderLaundryMarkers(sortByDistanceAfterNearMe = false) {
 
 // Function to show status messages
 function showStatusMessage(message, type = 'info') { // type can be 'info', 'success', 'error'
-    // Clear any existing content and classes
-    statusMessageContainer.innerHTML = '';
-    statusMessageContainer.className = 'fixed top-4 right-4 z-50 max-w-md';
-      // Create message element with Tailwind classes
-    const messageEl = document.createElement('div');
-    
-    // Base classes for all message types
-    let classes = 'px-6 py-4 rounded-lg shadow-xl font-medium text-sm border-l-4 backdrop-blur-sm animate-fadeInUp';
-    
-    // Add type-specific classes
-    switch(type) {
-        case 'success':
-            classes += ' bg-green-50/95 text-green-800 border-green-500';
-            break;
-        case 'error':
-            classes += ' bg-red-50/95 text-red-800 border-red-500';
-            break;
-        case 'info':
-        default:
-            classes += ' bg-blue-50/95 text-blue-800 border-blue-500';
-            break;
-    }
-      messageEl.className = classes;
-    
-    // Add close button for error messages
-    if (type === 'error') {
-        messageEl.innerHTML = `
-            <div class="flex items-start justify-between gap-3">
-                <span class="flex-1">${message}</span>
-                <button class="error-close-btn flex-shrink-0 text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded hover:bg-red-100" onclick="this.closest('#status-message-container').style.display='none'">
-                    <i class="fas fa-times text-xs"></i>
-                </button>
-            </div>
-        `;
-    } else {
-        messageEl.textContent = message;
-    }
-    
-    statusMessageContainer.appendChild(messageEl);
+    statusMessageContainer.textContent = message;
+    statusMessageContainer.className = type; // Resets other classes
     statusMessageContainer.style.display = 'block';
-    
     // Automatically hide after some time, unless it's an error that needs attention
     if (type !== 'error') {
         setTimeout(() => {
@@ -233,156 +173,6 @@ function showStatusMessage(message, type = 'info') { // type can be 'info', 'suc
 // Function to show/hide loading indicator
 function setLoading(isLoading) {
     loadingIndicator.style.display = isLoading ? 'block' : 'none';
-}
-
-// Search Functions
-async function searchLaundries(query) {
-    if (!query || query.trim().length < 2) {
-        hideSearchResults();
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}&limit=8`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const results = await response.json();
-        displaySearchResults(results, query);
-    } catch (error) {
-        console.error('Error searching laundries:', error);
-        showStatusMessage('Search error. Please try again.', 'error');
-        hideSearchResults();
-    }
-}
-
-function displaySearchResults(results, query) {
-    searchResults.innerHTML = '';
-    
-    if (results.length === 0) {
-        searchResults.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-8 px-6 text-gray-500">
-                <i class="fas fa-search text-2xl mb-3 text-gray-400"></i>
-                <span class="text-sm font-medium">No laundries found for "${query}"</span>
-            </div>
-        `;
-        searchResults.style.display = 'block';
-        return;
-    }
-
-    results.forEach((laundry, index) => {
-        const resultItem = document.createElement('div');
-        resultItem.className = 'search-result-item px-4 py-3 cursor-pointer transition-all duration-200 border-b border-gray-100 last:border-b-0 hover:bg-blue-50 hover:border-blue-200';
-        resultItem.dataset.index = index;
-        resultItem.dataset.lat = laundry.lat;
-        resultItem.dataset.lng = laundry.lng;
-        
-        // Highlight matching text
-        const highlightedName = highlightSearchTerm(laundry.name, query);
-        const highlightedAddress = highlightSearchTerm(laundry.address || '', query);
-        
-        resultItem.innerHTML = `
-            <div class="font-semibold text-gray-900 text-sm mb-1">${highlightedName}</div>
-            <div class="text-xs text-gray-600 mb-2 leading-relaxed">${highlightedAddress}</div>
-            <div class="flex items-center justify-between text-xs">
-                <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium">
-                    <i class="fas fa-tag text-xs"></i>
-                    Rp ${laundry.price_per_kg}/kg
-                </span>
-                <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
-                    <i class="fas fa-clock text-xs"></i>
-                    ${laundry.service_speed_days} day(s)
-                </span>
-            </div>
-        `;
-        
-        resultItem.addEventListener('click', () => selectSearchResult(laundry));
-        searchResults.appendChild(resultItem);
-    });
-    
-    searchResults.style.display = 'block';
-    selectedSearchIndex = -1;
-}
-
-function highlightSearchTerm(text, query) {
-    if (!text || !query) return text;
-    
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return text.replace(regex, '<mark>$1</mark>');
-}
-
-function selectSearchResult(laundry) {
-    // Center map on selected laundry
-    map.setView([laundry.lat, laundry.lng], 17);
-    
-    // Find and open the popup for this laundry
-    laundryMarkers.eachLayer(layer => {
-        if (layer.getLatLng().lat === laundry.lat && layer.getLatLng().lng === laundry.lng) {
-            layer.openPopup();
-        }
-    });
-    
-    // Hide search results and clear input
-    hideSearchResults();
-    searchInput.value = '';
-    clearSearchBtn.style.display = 'none';
-    
-    showStatusMessage(`Showing ${laundry.name}`, 'success');
-}
-
-function hideSearchResults() {
-    searchResults.style.display = 'none';
-    searchResults.innerHTML = '';
-    selectedSearchIndex = -1;
-}
-
-function clearSearch() {
-    searchInput.value = '';
-    currentSearchQuery = '';
-    hideSearchResults();
-    clearSearchBtn.style.display = 'none';
-    searchInput.focus();
-}
-
-function handleSearchNavigation(event) {
-    const resultItems = searchResults.querySelectorAll('.search-result-item');
-    
-    if (resultItems.length === 0) return;
-    
-    // Remove previous selection
-    resultItems.forEach(item => {
-        item.classList.remove('bg-blue-100', 'border-blue-300');
-        item.classList.add('hover:bg-blue-50', 'hover:border-blue-200');
-    });
-    
-    switch (event.key) {
-        case 'ArrowDown':
-            event.preventDefault();
-            selectedSearchIndex = Math.min(selectedSearchIndex + 1, resultItems.length - 1);
-            break;
-        case 'ArrowUp':
-            event.preventDefault();
-            selectedSearchIndex = Math.max(selectedSearchIndex - 1, -1);
-            break;
-        case 'Enter':
-            event.preventDefault();
-            if (selectedSearchIndex >= 0 && resultItems[selectedSearchIndex]) {
-                resultItems[selectedSearchIndex].click();
-            }
-            return;
-        case 'Escape':
-            hideSearchResults();
-            searchInput.blur();
-            return;
-    }
-    
-    // Apply new selection
-    if (selectedSearchIndex >= 0) {
-        const selectedItem = resultItems[selectedSearchIndex];
-        selectedItem.classList.remove('hover:bg-blue-50', 'hover:border-blue-200');
-        selectedItem.classList.add('bg-blue-100', 'border-blue-300');
-        selectedItem.scrollIntoView({ block: 'nearest' });
-    }
 }
 
 // Function to fetch laundry data from the backend
@@ -415,10 +205,6 @@ function filterLaundries() {
 function resetFilters() {
     priceFilterInput.value = '';
     speedFilterInput.value = '';
-    
-    // Clear search
-    clearSearch();
-    
     if (routingControl) { // Clear route on reset filters
         map.removeControl(routingControl);
         routingControl = null;
@@ -479,16 +265,7 @@ function findNearMe() {
 // Function to show route to laundry
 function showRouteToLaundry(laundryLat, laundryLng, laundryName) {
     if (!currentUserLocation) {
-        showStatusMessage(`🗺️ Location Required: Please click "Find Near Me" first to enable directions to ${laundryName}.`, 'error');
-        
-        // Highlight the "Find Near Me" button to guide the user
-        const nearMeButton = document.getElementById('near-me-btn');
-        if (nearMeButton) {
-            nearMeButton.classList.add('animate-pulse');
-            setTimeout(() => {
-                nearMeButton.classList.remove('animate-pulse');
-            }, 3000);
-        }
+        showStatusMessage("Please use 'Find Near Me' first to get your current location for directions.", 'error');
         return;
     }
 
@@ -541,32 +318,6 @@ filterBtn.addEventListener('click', filterLaundries);
 resetBtn.addEventListener('click', resetFilters);
 nearMeBtn.addEventListener('click', findNearMe);
 choroplethBtn.addEventListener('click', toggleChoropleth);
-
-// Search event listeners
-searchInput.addEventListener('input', (e) => {
-    const query = e.target.value;
-    currentSearchQuery = query;
-    
-    // Show/hide clear button
-    clearSearchBtn.style.display = query.length > 0 ? 'flex' : 'none';
-    
-    // Debounce search
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-        searchLaundries(query);
-    }, 300);
-});
-
-searchInput.addEventListener('keydown', handleSearchNavigation);
-
-clearSearchBtn.addEventListener('click', clearSearch);
-
-// Click outside to close search results
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.search-container')) {
-        hideSearchResults();
-    }
-});
 
 // Function to toggle choropleth view
 async function toggleChoropleth() {
