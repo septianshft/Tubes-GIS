@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="128" height="128" fill="#4F46E5" rx="12.8"/>
+    
+    <!-- Laundry machine circle -->
+    <circle cx="64" cy="64" r="38.4" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="64" cy="64" r="30.72" fill="none" stroke="#4F46E5" stroke-width="2.56"/>
+    
+    <!-- Inner circle (washing machine door) -->
+    <circle cx="64" cy="64" r="23.04" fill="none" stroke="#4F46E5" stroke-width="1.92"/>
+    
+    <!-- Washing machine elements -->
+    <circle cx="64" cy="64" r="7.68" fill="#6366F1" opacity="0.6"/>
+    
+    <!-- Location pin -->
+    <g transform="translate(87.03999999999999, 40.96)">
+        <path d="M0,0 L3.84,7.68 L-3.84,7.68 Z" fill="#EF4444"/>
+        <circle cx="0" cy="0" r="2.56" fill="#EF4444"/>
+    </g>
+    
+    <!-- Text "L" for Laundry -->
+    <text x="64" y="76.8" text-anchor="middle" font-family="Arial, sans-serif" font-size="25.6" font-weight="bold" fill="#4F46E5">L</text>
+</svg>

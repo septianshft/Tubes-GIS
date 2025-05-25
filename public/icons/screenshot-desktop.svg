@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1280" height="720" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="1280" height="720" fill="#F8FAFC"/>
+    
+    <!-- Header -->
+    <rect width="1280" height="80" fill="#4F46E5"/>
+    <text x="640" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white">LaundryMap</text>
+    
+    <!-- Map area -->
+    <rect x="40" y="120" width="800" height="560" fill="#E2E8F0" rx="12"/>
+    <text x="440" y="420" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#64748B">Interactive Map View</text>
+    
+    <!-- Sidebar -->
+    <rect x="880" y="120" width="360" height="560" fill="white" rx="12" stroke="#E2E8F0"/>
+    <text x="1060" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1E293B">Nearby Laundries</text>
+    
+    <!-- Laundry items -->
+    <rect x="900" y="180" width="320" height="80" fill="#F1F5F9" rx="8"/>
+    <text x="920" y="205" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1E293B">Dr. Laundry Telkom</text>
+    <text x="920" y="225" font-family="Arial, sans-serif" font-size="14" fill="#64748B">Rp 7,000/kg • 1 day</text>
+    <text x="920" y="245" font-family="Arial, sans-serif" font-size="14" fill="#64748B">📍 Jl. Telekomunikasi</text>
+</svg>
