@@ -60,9 +60,10 @@ const db = new sqlite3.Database(dbPath, (err) => {
         
         // Setup middleware after database is ready
         setupMiddleware(app);
-        
-        // Serve static files from the 'public' directory
+          // Serve static files from the 'public' directory
         app.use(express.static(path.join(__dirname, 'public')));
+        // Serve images from the 'img' directory
+        app.use('/img', express.static(path.join(__dirname, 'img')));
         app.use(express.json()); // Middleware to parse JSON bodies for POST requests
           // Setup enhanced routes after database is ready
         setupEnhancedRoutes(app, db);
