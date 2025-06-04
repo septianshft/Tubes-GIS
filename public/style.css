@@ -743,13 +743,84 @@ body {
     margin-bottom: 0.25rem;
 }
 
-.popup-info div {
-    display: flex;
-    align-items: center;
-    font-size: 0.9rem;
+/* Map legend styles for marker legend */
+.leaflet-control.map-legend,
+.map-legend {
+    background-color: white !important;
+    border-radius: var(--radius-md) !important;
+    padding: 0.75rem !important;
+    box-shadow: var(--shadow-md) !important;
+    border: 1px solid var(--border) !important;
+    font-family: 'Inter', sans-serif !important;
+    min-width: 180px !important;
+    margin: 10px !important; /* Ensures spacing from map edge */
 }
 
-.popup-info strong {
-    margin-right: 5px;
-    color: #764ba2;
+.leaflet-control.map-legend h4,
+.map-legend h4 {
+    margin: 0 0 0.5rem 0 !important;
+    color: var(--text-primary) !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding-bottom: 0.375rem !important;
+}
+
+.leaflet-control.map-legend .legend-item,
+.map-legend .legend-item {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 0.375rem !important;
+    font-size: 0.75rem !important;
+    color: var(--text-secondary) !important;
+}
+
+.leaflet-control.map-legend .legend-item:last-child,
+.map-legend .legend-item:last-child {
+    margin-bottom: 0 !important;
+}
+
+.leaflet-control.map-legend .legend-icon,
+.map-legend .legend-icon {
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    font-size: 12px !important;
+    flex-shrink: 0 !important;
+    /* border is applied per icon type below */
+}
+
+.leaflet-control.map-legend .legend-icon.university,
+.map-legend .legend-icon.university {
+    background-color: #e8f4fd !important;
+    border: 2px solid #2563eb !important;
+}
+
+.leaflet-control.map-legend .legend-icon.laundry,
+.map-legend .legend-icon.laundry {
+    background-color: #f0f9ff !important;
+    border: 2px solid #10b981 !important;
+}
+
+.leaflet-control.map-legend .legend-icon.user,
+.map-legend .legend-icon.user {
+    background-color: #fef3e2 !important;
+    border: 2px solid #f59e0b !important;
+}
+
+.leaflet-control.map-legend .legend-icon.filtered,
+.map-legend .legend-icon.filtered {
+    background-color: #f1f5f9 !important;
+    border: 2px solid #94a3b8 !important;
+    opacity: 0.4 !important;
+}
+
+.leaflet-control.map-legend .legend-icon.filtered::after,
+.map-legend .legend-icon.filtered::after {
+    content: "🧺" !important;
+    opacity: 0.4 !important;
 }

@@ -1,0 +1,68 @@
+@startuml
+title Activity Diagram: User Finding a Laundry (with Swimlanes)
+
+|Pengguna|
+start
+:Membuka aplikasi LaundryMap;
+
+|Sistem|
+:Melakukan inisialisasi dan memuat antarmuka peta;
+:Mengambil data laundry awal dari API (`/api/laundries`);
+:Menampilkan peta dengan penanda laundry dan legenda;
+
+|Pengguna|
+:Melihat peta dan lokasi laundry;
+
+fork
+  |Pengguna|
+  if (Memutuskan untuk mencari?) then (ya)
+    :Memasukkan kriteria pencarian (misalnya: name, address);
+  else (tidak)
+  endif
+fork again
+  |Pengguna|
+  if (Memutuskan untuk memfilter?) then (ya)
+    :Memilih opsi filter (misalnya: price, service speed);
+  else (tidak)
+  endif
+end fork
+
+|Sistem|
+if (Search criteria provided?) then (yes)
+  :Mengirim query pencarian ke backend (atau memfilter di sisi klien);
+  :Memperbarui peta untuk menampilkan laundry yang cocok;
+else (no)
+endif
+
+if (Filter options selected?) then (yes)
+  :Menerapkan filter ke data laundry;
+  :Memperbarui peta untuk menampilkan laundry yang telah difilter;
+else (no)
+endif
+
+|Pengguna|
+if (Mengklik penanda laundry?) then (ya)
+  |Sistem|
+  :Menampilkan pop-up informasi detail untuk laundry yang dipilih;
+else (tidak)
+  |Pengguna|
+  :Melanjutkan interaksi dengan peta;
+endif
+
+|Pengguna|
+if (Ingin melihat lokasinya?) then (ya)
+  :Mengklik tombol 'Show My Location';
+  |Sistem|
+  :Meminta izin lokasi dari browser;
+  if (Permission granted?) then (yes)
+    :Mengambil koordinat pengguna;
+    :Menampilkan penanda lokasi pengguna di peta;
+  else (no)
+    :Menampilkan pesan error atau tidak melakukan apa-apa;
+  endif
+else (tidak)
+endif
+
+|Pengguna|
+stop
+@enduml

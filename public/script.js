@@ -70,6 +70,45 @@ const userLocationIcon = L.divIcon({
     iconAnchor: [15, 42]
 });
 
+// Create a custom legend control for map markers
+L.Control.MapLegend = L.Control.extend({
+    onAdd: function(map) {
+        var div = L.DomUtil.create('div', 'map-legend');
+        div.innerHTML = `
+            <h4>Map Legend</h4>
+            <div class="legend-item">
+                <span class="legend-icon university">🏫</span>
+                <span>Telkom University</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-icon laundry">🧺</span>
+                <span>Laundry Services</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-icon user">📍</span>
+                <span>Your Location</span>
+            </div>
+        `;
+        
+        // Prevent map events when interacting with legend
+        L.DomEvent.disableClickPropagation(div);
+        L.DomEvent.disableScrollPropagation(div);
+        
+        return div;
+    },
+
+    onRemove: function(map) {
+        // Nothing to do here
+    }
+});
+
+L.control.mapLegend = function(opts) {
+    return new L.Control.MapLegend(opts);
+}
+
+// Add the map legend to the map
+L.control.mapLegend({ position: 'topright' }).addTo(map);
+
 // Add a marker for Telkom University with custom icon
 L.marker([-6.972775814889462, 107.63050136194732], {icon: campusIcon})
     .addTo(map)
@@ -124,36 +163,39 @@ function renderLaundryMarkers(sortByDistanceAfterNearMe = false) {
     }
 
     laundriesToProcess.forEach(laundry => {
-        const matchesFilters = laundry.price_per_kg <= maxPrice && laundry.service_speed_days <= maxSpeed;        let popupContent = `<b>${laundry.name}</b>
-                            <div class="popup-info">
-                                <div><strong>💰 Price:</strong> Rp ${laundry.price_per_kg}/kg</div>
-                                <div><strong>⏱️ Speed:</strong> ${laundry.service_speed_days} day(s)</div>
-                                <div><strong>🕒 Hours:</strong> ${laundry.opening_hours || 'N/A'}</div>
-                                <div><strong>📍 Address:</strong> ${laundry.address || 'N/A'}</div>`;
-
-        if (laundry.distance !== undefined) {
-            popupContent += `<div><strong>🚶 Distance:</strong> ${laundry.distance.toFixed(0)} m</div>`;
-        }
+        const matchesFilters = laundry.price_per_kg <= maxPrice && laundry.service_speed_days <= maxSpeed;
         
-        popupContent += `</div>`;
-        
-        // Add Get Directions button
-        popupContent += `<button class="directions-btn" data-lat="${laundry.lat}" data-lng="${laundry.lng}" data-name="${laundry.name}">Get Directions</button>`;
+        if (matchesFilters) { // Only process and add marker if it matches filters
+            let popupContent = `<b>${laundry.name}</b>
+                                <div class="popup-info">
+                                    <div><strong>💰 Price:</strong> Rp ${laundry.price_per_kg}/kg</div>
+                                    <div><strong>⏱️ Speed:</strong> ${laundry.service_speed_days} day(s)</div>
+                                    <div><strong>🕒 Hours:</strong> ${laundry.opening_hours || 'N/A'}</div>
+                                    <div><strong>📍 Address:</strong> ${laundry.address || 'N/A'}</div>`;
 
-        const marker = L.marker([laundry.lat, laundry.lng], {icon: laundryIcon});
+            if (laundry.distance !== undefined) {
+                popupContent += `<div><strong>🚶 Distance:</strong> ${laundry.distance.toFixed(0)} m</div>`;
+            }
+            
+            popupContent += `</div>`;
+            
+            // Add Get Directions button
+            popupContent += `<button class="directions-btn" data-lat="${laundry.lat}" data-lng="${laundry.lng}" data-name="${laundry.name}">Get Directions</button>`;
 
-        if (!matchesFilters) {
-            marker.setOpacity(0.4); // Dim markers that don't match filters
-        } else {
+            const marker = L.marker([laundry.lat, laundry.lng], {
+                icon: laundryIcon,
+                laundryData: laundry // Store the full laundry data, including ID
+            });
+
             marker.setOpacity(1.0); // Ensure matching markers are fully opaque
-        }
 
-        marker.bindPopup(popupContent, {
-            minWidth: 220, // Larger popup
-            autoPan: true, // Map pans to keep popup visible
-            autoPanPadding: L.point(50, 50) // Padding for autoPan
-        });
-        marker.addTo(laundryMarkers);
+            marker.bindPopup(popupContent, {
+                minWidth: 220, // Larger popup
+                autoPan: true, // Map pans to keep popup visible
+                autoPanPadding: L.point(50, 50) // Padding for autoPan
+            });
+            marker.addTo(laundryMarkers);
+        }
     });
 }
 
@@ -455,3 +497,105 @@ fetchLaundries();
 
 // Call fetchLaundries on page load
 fetchLaundries();
+
+// Search Bar Functionality
+const searchInput = document.getElementById('search-input');
+const searchResultsContainer = document.getElementById('search-results');
+const clearSearchButton = document.getElementById('clear-search');
+
+function debounce(func, delay) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+async function handleSearch() {
+    const query = searchInput.value.trim();
+    searchResultsContainer.innerHTML = ''; // Clear previous results
+
+    if (query.length < 2) { // Only search if query is at least 2 characters
+        searchResultsContainer.style.display = 'none';
+        // clearSearchButton.style.display = query.length > 0 ? 'block' : 'none'; // Handled in input listener
+        return;
+    }
+
+    // clearSearchButton.style.display = 'block'; // Handled in input listener
+    searchResultsContainer.style.display = 'block'; // Show container
+
+    try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const results = await response.json();
+
+        if (results.length === 0) {
+            searchResultsContainer.innerHTML = '<div class="p-3 text-gray-500 text-sm">No results found.</div>';
+        } else {
+            results.forEach(laundry => {
+                const item = document.createElement('div');
+                item.className = 'p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 text-sm';
+                item.textContent = laundry.name;
+                item.onclick = () => {
+                    searchInput.value = laundry.name;
+                    searchResultsContainer.style.display = 'none';
+                    if (map && laundry.lat && laundry.lng) {
+                        map.setView([laundry.lat, laundry.lng], 16); // Zoom level 16, adjust as needed
+                    }
+
+                    // Find and open the marker popup
+                    if (laundryMarkers) { // laundryMarkers is the LayerGroup
+                        const markerToOpen = laundryMarkers.getLayers().find(m => m.options.laundryData && m.options.laundryData.id === laundry.id);
+                        if (markerToOpen) {
+                            markerToOpen.openPopup();
+                        }
+                    }
+                };
+                searchResultsContainer.appendChild(item);
+            });
+        }
+    } catch (error) {
+        console.error('Search API error:', error);
+        searchResultsContainer.innerHTML = '<div class="p-3 text-red-500 text-sm">Error fetching search results.</div>';
+    }
+}
+
+const debouncedSearch = debounce(handleSearch, 300);
+
+if (searchInput) {
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim();
+        if (query.length > 0) {
+            clearSearchButton.style.display = 'block';
+            debouncedSearch();
+        } else {
+            clearSearchButton.style.display = 'none';
+            searchResultsContainer.innerHTML = '';
+            searchResultsContainer.style.display = 'none';
+        }
+    });
+}
+
+if (clearSearchButton) {
+    clearSearchButton.addEventListener('click', () => {
+        searchInput.value = '';
+        searchResultsContainer.innerHTML = '';
+        searchResultsContainer.style.display = 'none';
+        clearSearchButton.style.display = 'none';
+        // Optionally, reset map view or filters here, e.g., by calling renderLaundryMarkers();
+        // renderLaundryMarkers(); // This would re-apply current filters and show all relevant markers
+    });
+}
+
+// Hide search results if clicked outside
+document.addEventListener('click', function(event) {
+    if (searchInput && searchResultsContainer) {
+        const isClickInsideSearchInput = searchInput.contains(event.target);
+        const isClickInsideSearchResults = searchResultsContainer.contains(event.target);
+        if (!isClickInsideSearchInput && !isClickInsideSearchResults) {
+            searchResultsContainer.style.display = 'none';
+        }
+    }
+});

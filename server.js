@@ -87,6 +87,30 @@ app.post('/api/laundries', (req, res) => {
     stmt.finalize();
 });
 
+// API endpoint for searching laundries
+app.get('/api/search', (req, res) => {
+    const query = req.query.q;
+
+    if (!query) {
+        return res.status(400).json({ error: "Query parameter 'q' is required" });
+    }
+
+    const searchQuery = `%${query}%`; // Prepare query for LIKE statement
+
+    db.all(
+        "SELECT * FROM laundries WHERE name LIKE ? OR address LIKE ?",
+        [searchQuery, searchQuery],
+        (err, rows) => {
+            if (err) {
+                console.error("Error searching laundries in DB", err.message);
+                res.status(500).json({ error: err.message });
+                return;
+            }
+            res.json(rows);
+        }
+    );
+});
+
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });

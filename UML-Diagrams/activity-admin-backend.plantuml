@@ -1,0 +1,78 @@
+@startuml
+title Activity Diagram: Refreshing Laundry Dataset (with Swimlanes)
+
+|Administrator/Script|
+start
+:Executes `refresh-laundries.js` script;
+:Logs "Starting database refresh process...";
+
+|Database|
+:Receives connection request from script;
+
+|Administrator/Script|
+:Sends `DELETE FROM laundries` SQL command;
+
+|Database|
+:Executes `DELETE FROM laundries` command;
+if (Deletion successful?) then (yes)
+  |Administrator/Script|
+  :Receives success confirmation;
+  :Logs "Successfully cleared existing laundries from database.";
+else (no)
+  |Administrator/Script|
+  :Receives error;
+  :Logs "Error clearing database: [error message]";
+  stop
+endif
+|Database|
+:Closes database connection;
+
+|Administrator/Script|
+:Logs "Adding new laundry locations via API...";
+:Initializes `successCount = 0`, `failCount = 0`;
+:Loads predefined `laundries` array from script;
+
+if (Is `laundries` array empty?) then (yes)
+  :Logs "No laundries to process in array for seeding.";
+else (no)
+  while (More laundries in array?) is (yes)
+    :Gets next `laundry` object from array;
+    :Logs "Attempting to add \"[laundry.name]\" via API...";
+    :Makes POST request to `/api/laundries` with `laundry` data;
+
+    |API Server|
+    :Receives POST request for "[laundry.name]";
+    :Validates incoming data;
+    if (Validation OK?) then (yes)
+      :Attempts to insert laundry into its database;
+      if (DB Insert Successful?) then (yes)
+        :Responds with HTTP 201 (Created) and success JSON;
+      else (no - DB error)
+        :Responds with HTTP 500 (Server Error) and error JSON;
+      endif
+    else (no - Validation failed)
+      :Responds with HTTP 400 (Bad Request) and error JSON;
+    endif
+
+    |Administrator/Script|
+    :Receives HTTP response from API Server;
+    if (HTTP Response OK (e.g., 201)?) then (yes)
+      :Parses response JSON;
+      :Logs "✅ Added \"[laundry.name]\"";
+      :Increments `successCount`;
+    else (no - API call or HTTP response error)
+      :Retrieves error details from response;
+      :Logs "❌ Error adding \"[laundry.name]\": [error.message]";
+      :Increments `failCount`;
+    endif
+  endwhile (no more laundries)
+endif
+
+|Administrator/Script|
+:Logs "\n==== Refresh Summary ====";
+:Logs "✅ Successfully added via API: [successCount] laundry locations";
+:Logs "❌ Failed to add via API: [failCount] laundry locations";
+:Logs "Total attempted: [laundries.length] laundry locations";
+
+stop
+@enduml

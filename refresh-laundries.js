@@ -340,7 +340,8 @@ async function addLaundries() {
       
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`HTTP error ${response.status}: ${errorText}`);
+        console.error(`❌ Error adding "${laundry.name}" - Server responded with ${response.status}: ${errorText}`); // Log server error
+        throw new Error(`Server responded with ${response.status}: ${errorText}`); // Throw error to be caught by catch block
       }
       
       const data = await response.json();

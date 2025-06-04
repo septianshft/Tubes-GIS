@@ -1,0 +1,65 @@
+@startuml sistem laundry
+' Diagram Use Case untuk Sistem LaundryMap
+' Berdasarkan file proyek: add-laundries.js, refresh-laundries.js, server.js, public/script.js
+
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecase {
+    BackgroundColor LightYellow
+    BorderColor Black
+    ArrowColor Black
+}
+skinparam actor {
+    BorderColor Black
+}
+
+title Sistem LaundryMap - Diagram Use Case
+
+actor "Pengguna Akhir" as User
+actor "Administrator Data" as Admin
+
+rectangle "Sistem LaundryMap" {
+  ' --- Use Case untuk Pengguna ---
+  usecase UC_ViewMap as "Lihat Peta Interaktif\ndengan Lokasi Laundry"
+  usecase UC_SearchLaundries as "Cari Laundry\n(berdasarkan nama, alamat, dll.)"
+  usecase UC_FilterLaundries as "Filter Laundry\n(berdasarkan harga, kecepatan layanan, dll.)"
+  usecase UC_ViewLaundryDetails as "Lihat Detail Laundry\n(dalam pop-up peta)"
+  usecase UC_ShowUserLocation as "Tampilkan Lokasi Pengguna Saat Ini\ndi Peta"
+  usecase UC_ViewDensityMap as "Lihat Kepadatan Laundry\nberdasarkan Kecamatan (Choropleth)"
+  usecase UC_ViewLegend as "Lihat Legenda Peta\n(untuk Marker & Peta Kepadatan)"
+
+  ' --- Use Case untuk Administrator (mencerminkan kemampuan skrip) ---
+  usecase UC_SeedLaundries as "Seed/Tambah Sekumpulan Laundry\n(melalui API, misalnya add-laundries.js)"
+  usecase UC_ClearAllLaundries as "Hapus Semua Data Laundry yang Ada\n(akses langsung ke DB, misalnya bagian dari skrip refresh)"
+  usecase UC_RefreshDataset as "Segarkan Seluruh Dataset Laundry\n(misalnya menggunakan refresh-laundries.js)"
+}
+
+' Interaksi Pengguna dengan Sistem
+User --> UC_ViewMap
+User --> UC_SearchLaundries
+User --> UC_FilterLaundries
+User --> UC_ViewLaundryDetails
+User --> UC_ShowUserLocation
+User --> UC_ViewDensityMap
+User --> UC_ViewLegend
+
+' Interaksi Administrator dengan Sistem (biasanya melalui skrip)
+Admin --> UC_RefreshDataset
+Admin --> UC_SeedLaundries
+
+' Hubungan antar Use Case
+
+' Use case pengguna yang memperluas atau menyertakan lainnya
+UC_SearchLaundries <.. UC_ViewMap : <<extends>>
+UC_FilterLaundries <.. UC_ViewMap : <<extends>>
+UC_ViewLaundryDetails <.. UC_ViewMap : <<extends>>
+UC_ViewDensityMap <.. UC_ViewMap : <<extends>>
+
+UC_ViewMap ..> UC_ViewLegend : <<includes>>
+UC_ViewDensityMap ..> UC_ViewLegend : <<includes>>
+
+' Hubungan use case administrator
+UC_RefreshDataset ..> UC_ClearAllLaundries : <<includes>>
+UC_RefreshDataset ..> UC_SeedLaundries : <<includes>>
+@enduml

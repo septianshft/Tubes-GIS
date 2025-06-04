@@ -1,0 +1,61 @@
+
+/* Map Legend Styles */
+.map-legend {
+    padding: 10px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+    line-height: 1.5;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #333;
+}
+
+.map-legend h4 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.legend-item:last-child {
+    margin-bottom: 0;
+}
+
+.legend-icon {
+    display: inline-block;
+    width: 20px; 
+    height: 20px; 
+    margin-right: 8px;
+    text-align: center;
+    line-height: 20px; 
+}
+
+.legend-icon.filtered {
+    background-color: #aaa; 
+    opacity: 0.7;
+    border-radius: 3px;
+}
+
+/* Dark mode for map legend */
+.dark .map-legend {
+    background-color: #1f2937; /* Tailwind gray-800 */
+    border-color: #4b5563; /* Tailwind gray-600 */
+    color: #d1d5db; /* Tailwind gray-300 */
+}
+
+.dark .map-legend h4 {
+    color: #e5e7eb; /* Tailwind gray-200 */
+}
+
+.dark .legend-icon.filtered {
+    background-color: #6b7280; /* Tailwind gray-500 */
+}
